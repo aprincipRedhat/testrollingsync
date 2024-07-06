@@ -1,0 +1,41 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: cluster-addons
+  namespace: openshift-gitops
+spec:
+  goTemplate: true
+  goTemplateOptions: [“missingkey=error”]
+  generators:
+  - git:
+      repoURL: https://github.com/aprincipRedhat/testrollingsync.git
+      revision: main
+      directories:
+      - path: apps/*
+  strategy:
+    type: RollingSync
+    rollingSync:
+      steps:
+        - matchExpressions:
+            - key: app
+              operator: NotIn
+              values:
+                - bobs
+          maxUpdate: 1
+  template:
+    metadata:
+      name: ‘{{.path.basename}}’
+      labels:
+        app: bob
+    spec:
+      project: default
+      source:
+        repoURL: https://github.com/aprincipRedhat/testrollingsync.git
+        targetRevision: main
+        path: ‘{{.path.path}}’
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: openshift-gitops
+      syncPolicy:
+        syncOptions:
+        - CreateNamespace=true
