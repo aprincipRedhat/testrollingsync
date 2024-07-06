@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: ApplicationSet
 metadata:
-  name: cluster-addons
+  name: alex-test
   namespace: openshift-gitops
 spec:
   goTemplate: true
@@ -12,15 +12,17 @@ spec:
       revision: main
       directories:
       - path: apps/*
+      values:
+        app: bob
   strategy:
     type: RollingSync
     rollingSync:
       steps:
         - matchExpressions:
             - key: app
-              operator: NotIn
+              operator: In
               values:
-                - bobs
+                - bob
           maxUpdate: 1
   template:
     metadata:
